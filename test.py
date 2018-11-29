@@ -2,22 +2,33 @@ import numpy as np
 import dtree
 import csvio
 import csv
+import json
+import sys
 
 if __name__ == '__main__':
-    # a = np.asarray([1, 1, 1, 2, 2, 3, 3, 3])
-    # labels = np.asarray([1, 1, 2, 2, 2, 1, 2, 2])
-    # print(dtree.single_entropy(a, labels))
-    # all_data = csvio.test_get_data('test.txt')
-    # tree = dtree.DecisionTree.build(all_data)
-    # tree.display()
-    # print(tree.root.d)
-    # print(dtree.build(all_data))
-    # print(csvio.indexes)
-    with open('diabetic_data.csv') as f:
+    sys.setrecursionlimit(1500)
+    # with open('pre.csv') as f:
+    #     reader = csv.reader(f)
+    #     stor = csvio.Storage()
+    #     stor.load_csv(reader, True)
+    #     json.dump(stor.mappings, open('mappings.json', 'w'), indent=4, ensure_ascii=False)
+
+    # csvio.preprocessing('diabetic_data.csv')
+    with open('pre.csv') as f:
         reader = csv.reader(f)
         stor = csvio.Storage()
         stor.load_csv(reader, True)
         print(stor.last_index)
-        # print(np.bincount(stor.data[:, 12]))
-        print(stor.mappings[11])
-        print(1)
+        print(stor.row_num)
+
+        datas = stor.data[:, :-1]
+        labels = stor.data[:, -1]
+
+        for i in range(36, 42):
+            print(np.bincount(datas[:, i]))
+        # for i in range(stor.column_num - 1):
+        #     print(i, dtree.single_entropy(datas[:, i], labels))
+        # tree = dtree.DecisionTree.build(stor.data)
+        #
+        # with open('tree.txt', 'w', encoding='utf-8') as f:
+        #     f.write(tree.display())

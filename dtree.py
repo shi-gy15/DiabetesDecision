@@ -15,6 +15,20 @@ def majority(labels: np.ndarray):
     return np.argmax(np.bincount(labels))
 
 
+def single_entropy(column: np.ndarray, labels: np.ndarray):
+    union = np.stack([column, labels], axis=1)
+    bins = np.bincount(column)
+    num_samples = labels.shape[0]
+    entropy = 0
+    for (i, sep_num) in enumerate(bins):
+        if sep_num != 0:
+            sep_area = union[union[:, 0] == i]
+            entropy += sep_area.shape[0] * binary_information(sep_area[:, 1])
+
+    entropy /= num_samples
+    return entropy
+
+
 def best_feature(datas: np.ndarray, labels: np.ndarray, used_features: np.ndarray):
     # gain = I(p, n) - E
     # so choose the minimum new E
@@ -96,8 +110,6 @@ class DecisionTree:
         return tree
 
 
-
-
 def information(labels: np.ndarray):
     # assert there are more than one kind of features
     num_samples = labels.shape[0]
@@ -112,7 +124,7 @@ def _calc_binary_information(p: int, n: int):
 def binary_information(labels: np.ndarray):
     # assume labels number in [0, 1, 2]
 
-    _, p, n = np.bincount(labels, minlength=3)
+    p, n = np.bincount(labels, minlength=2)
     p, n = max(p, n), min(p, n)
     if n == 0:
         return 0
@@ -121,25 +133,8 @@ def binary_information(labels: np.ndarray):
     return _information_table[(p, n)]
 
 
-def single_entropy(column: np.ndarray, labels: np.ndarray):
-    union = np.stack([column, labels], axis=1)
-    bins = np.bincount(column)
-    num_samples = labels.shape[0]
-    entropy = 0
-    for (i, sep_num) in enumerate(bins):
-        if sep_num != 0:
-            sep_area = union[union[:, 0] == i]
-            entropy += sep_area.shape[0] * binary_information(sep_area[:, 1])
-
-    entropy /= num_samples
-    return entropy
-
-
 def gain(column: np.ndarray, labels: np.ndarray):
     return binary_information(labels) - single_entropy(column, labels)
-
-
-
 
 
 def create_dtree(mtx: np.ndarray, used_features: np.ndarray):

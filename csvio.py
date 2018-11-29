@@ -1,6 +1,7 @@
 import csv
 import model
 import numpy as np
+import re
 
 # encounter_id,patient_nbr,race,gender,age,
 # weight, admission_type_id,discharge_disposition_id,admission_source_id,time_in_hospital,
@@ -102,13 +103,51 @@ class Storage:
         self.mappings[index] = new_mapping
 
 
+def icd9(val: str):
+    try:
+        code = float(val)
+        if 250 <= code < 251:
+            return 'Diabetes'
+        else:
+            try:
+                code = int(val)
+                if 390 <= code <= 459 or code == 785:
+                    return 'Circulatory'
+                elif 460 <= code <= 519 or code == 786:
+                    return 'Respiratory'
+                elif 520 <= code <= 579 or code == 787:
+                    return 'Digestive'
+                elif 800 <= code <= 999:
+                    return 'Injury'
+                elif 710 <= code <= 739:
+                    return 'Musculoskeletal'
+                elif 580 <= code or code == 788:
+                    return 'Genitourinary'
+                elif 140 <= code <= 239:
+                    return 'Neoplasms'
+                else:
+                    return 'Other'
+            except:
+                print(val)
+    except ValueError:
+        return 'Other'
 
 def preprocessing(filename):
+    datas = []
+    titles = []
+
     with open(filename, 'r') as f:
         lines = csv.reader(f)
-        datas = []
-        titles = next(lines)
+        origin_titles = next(lines)
+        for j, val in enumerate(origin_titles):
+            if j not in [0, 1, 5, 19, 20, 39, 40]:
+                titles.append(val)
         for line in lines:
+            # filter
+            discharge_type = int(line[7])
+            if discharge_type in [11, 13, 14, 19, 20, 21]:
+                continue
+
             p = []
             for i, val in enumerate(line):
                 # useless field
@@ -117,6 +156,7 @@ def preprocessing(filename):
                 # 39, 40  all of one value
                 # 19, 20  2nd and 3rd diagnosis
                 if i in [0, 1, 5, 19, 20, 39, 40]:
+
                     continue
 
                 # numeric field to interval
@@ -125,8 +165,31 @@ def preprocessing(filename):
                     seg = int(val) // 10
                     p.append('[%d-%d)' % (seg * 10, (seg + 1) * 10))
 
+                # numeric but not fair
+                # 15, 16  number of procedure and inpatient
+                elif i in [15, 16, 17]:
+                    p.append(val if int(val) <= 3 else '>3')
+
+                # diagnosis 1
+                # 18      diagnosis 1
+                elif i in [18]:
+                    p.append(icd9(val))
+
+                elif i in [49]:
+                    p.append('<30' if val == '<30' else '>30')
+
                 else:
                     p.append(val)
+            datas.append(p)
+
+        # datas = np.asarray(datas)
+
+    with open('pre.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(titles)
+        for row in datas:
+            writer.writerow(row)
+
 
 
 def get_data(filename):

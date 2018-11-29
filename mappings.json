@@ -1,0 +1,416 @@
+[
+    {
+        "Caucasian": 0,
+        "AfricanAmerican": 1,
+        "?": 2,
+        "Other": 3,
+        "Asian": 4,
+        "Hispanic": 5
+    },
+    {
+        "Female": 0,
+        "Male": 1,
+        "Unknown/Invalid": 2
+    },
+    {
+        "[0-10)": 0,
+        "[10-20)": 1,
+        "[20-30)": 2,
+        "[30-40)": 3,
+        "[40-50)": 4,
+        "[50-60)": 5,
+        "[60-70)": 6,
+        "[70-80)": 7,
+        "[80-90)": 8,
+        "[90-100)": 9
+    },
+    {
+        "6": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "8": 6,
+        "7": 7
+    },
+    {
+        "25": 0,
+        "1": 1,
+        "3": 2,
+        "6": 3,
+        "2": 4,
+        "5": 5,
+        "11": 6,
+        "7": 7,
+        "10": 8,
+        "4": 9,
+        "14": 10,
+        "18": 11,
+        "8": 12,
+        "13": 13,
+        "12": 14,
+        "16": 15,
+        "17": 16,
+        "22": 17,
+        "23": 18,
+        "9": 19,
+        "20": 20,
+        "15": 21,
+        "24": 22,
+        "28": 23,
+        "19": 24,
+        "27": 25
+    },
+    {
+        "1": 0,
+        "7": 1,
+        "2": 2,
+        "4": 3,
+        "5": 4,
+        "6": 5,
+        "20": 6,
+        "3": 7,
+        "17": 8,
+        "8": 9,
+        "9": 10,
+        "14": 11,
+        "10": 12,
+        "22": 13,
+        "11": 14,
+        "25": 15,
+        "13": 16
+    },
+    {
+        "1": 0,
+        "3": 1,
+        "2": 2,
+        "4": 3,
+        "5": 4,
+        "13": 5,
+        "12": 6,
+        "9": 7,
+        "7": 8,
+        "10": 9,
+        "6": 10,
+        "11": 11,
+        "8": 12,
+        "14": 13
+    },
+    {
+        "?": 0,
+        "MC": 1,
+        "MD": 2,
+        "HM": 3,
+        "UN": 4,
+        "BC": 5,
+        "SP": 6,
+        "CP": 7,
+        "SI": 8,
+        "DM": 9,
+        "CM": 10,
+        "CH": 11,
+        "PO": 12,
+        "WC": 13,
+        "OT": 14,
+        "OG": 15,
+        "MP": 16,
+        "FR": 17
+    },
+    {
+        "Pediatrics-Endocrinology": 0,
+        "?": 1,
+        "InternalMedicine": 2,
+        "Family/GeneralPractice": 3,
+        "Cardiology": 4,
+        "Surgery-General": 5,
+        "Orthopedics": 6,
+        "Gastroenterology": 7,
+        "Surgery-Cardiovascular/Thoracic": 8,
+        "Nephrology": 9,
+        "Orthopedics-Reconstructive": 10,
+        "Psychiatry": 11,
+        "Emergency/Trauma": 12,
+        "Pulmonology": 13,
+        "Surgery-Neuro": 14,
+        "Obsterics&Gynecology-GynecologicOnco": 15,
+        "ObstetricsandGynecology": 16,
+        "Pediatrics": 17,
+        "Hematology/Oncology": 18,
+        "Otolaryngology": 19,
+        "Surgery-Colon&Rectal": 20,
+        "Pediatrics-CriticalCare": 21,
+        "Endocrinology": 22,
+        "Urology": 23,
+        "Psychiatry-Child/Adolescent": 24,
+        "Pediatrics-Pulmonology": 25,
+        "Neurology": 26,
+        "Anesthesiology-Pediatric": 27,
+        "Radiology": 28,
+        "Pediatrics-Hematology-Oncology": 29,
+        "Psychology": 30,
+        "Podiatry": 31,
+        "Gynecology": 32,
+        "Oncology": 33,
+        "Pediatrics-Neurology": 34,
+        "Surgery-Plastic": 35,
+        "Surgery-Thoracic": 36,
+        "Surgery-PlasticwithinHeadandNeck": 37,
+        "Ophthalmology": 38,
+        "Surgery-Pediatric": 39,
+        "Pediatrics-EmergencyMedicine": 40,
+        "PhysicalMedicineandRehabilitation": 41,
+        "InfectiousDiseases": 42,
+        "Anesthesiology": 43,
+        "Rheumatology": 44,
+        "AllergyandImmunology": 45,
+        "Surgery-Maxillofacial": 46,
+        "Pediatrics-InfectiousDiseases": 47,
+        "Pediatrics-AllergyandImmunology": 48,
+        "Dentistry": 49,
+        "Surgeon": 50,
+        "Surgery-Vascular": 51,
+        "Osteopath": 52,
+        "Psychiatry-Addictive": 53,
+        "Surgery-Cardiovascular": 54,
+        "PhysicianNotFound": 55,
+        "Hematology": 56,
+        "Proctology": 57,
+        "Obstetrics": 58,
+        "SurgicalSpecialty": 59,
+        "Radiologist": 60,
+        "Pathology": 61,
+        "Dermatology": 62,
+        "SportsMedicine": 63,
+        "Speech": 64,
+        "Hospitalist": 65,
+        "OutreachServices": 66,
+        "Cardiology-Pediatric": 67,
+        "Perinatology": 68,
+        "Neurophysiology": 69,
+        "Endocrinology-Metabolism": 70,
+        "DCPTEAM": 71,
+        "Resident": 72
+    },
+    {
+        "[40-50)": 0,
+        "[50-60)": 1,
+        "[10-20)": 2,
+        "[30-40)": 3,
+        "[70-80)": 4,
+        "[60-70)": 5,
+        "[20-30)": 6,
+        "[80-90)": 7,
+        "[0-10)": 8,
+        "[90-100)": 9,
+        "[100-110)": 10,
+        "[110-120)": 11,
+        "[120-130)": 12,
+        "[130-140)": 13
+    },
+    {
+        "0": 0,
+        "5": 1,
+        "1": 2,
+        "6": 3,
+        "2": 4,
+        "3": 5,
+        "4": 6
+    },
+    {
+        "[0-10)": 0,
+        "[10-20)": 1,
+        "[20-30)": 2,
+        "[30-40)": 3,
+        "[60-70)": 4,
+        "[40-50)": 5,
+        "[50-60)": 6,
+        "[70-80)": 7,
+        "[80-90)": 8
+    },
+    {
+        "0": 0,
+        "2": 1,
+        "1": 2,
+        ">3": 3,
+        "3": 4
+    },
+    {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        ">3": 3,
+        "3": 4
+    },
+    {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        ">3": 4
+    },
+    {
+        "Diabetes": 0,
+        "Other": 1,
+        "Genitourinary": 2,
+        "Neoplasms": 3,
+        "Circulatory": 4,
+        "Respiratory": 5,
+        "Injury": 6,
+        "Musculoskeletal": 7,
+        "Digestive": 8
+    },
+    {
+        "1": 0,
+        "9": 1,
+        "6": 2,
+        "7": 3,
+        "5": 4,
+        "8": 5,
+        "3": 6,
+        "4": 7,
+        "2": 8,
+        "16": 9,
+        "12": 10,
+        "13": 11,
+        "15": 12,
+        "10": 13,
+        "11": 14,
+        "14": 15
+    },
+    {
+        "None": 0,
+        ">300": 1,
+        "Norm": 2,
+        ">200": 3
+    },
+    {
+        "None": 0,
+        ">7": 1,
+        ">8": 2,
+        "Norm": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Up": 1,
+        "Steady": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Down": 2,
+        "Up": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Down": 2,
+        "Up": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Down": 2,
+        "Up": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Down": 2,
+        "Up": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Up": 2
+    },
+    {
+        "No": 0,
+        "Up": 1,
+        "Steady": 2,
+        "Down": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1,
+        "Down": 2,
+        "Up": 3
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Steady": 1
+    },
+    {
+        "No": 0,
+        "Ch": 1
+    },
+    {
+        "No": 0,
+        "Yes": 1
+    },
+    {
+        ">30": 0,
+        "<30": 1
+    }
+]
