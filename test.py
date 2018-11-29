@@ -14,6 +14,15 @@ if __name__ == '__main__':
     #     json.dump(stor.mappings, open('mappings.json', 'w'), indent=4, ensure_ascii=False)
 
     # csvio.preprocessing('diabetic_data.csv')
+    with open('test.txt', 'r') as f:
+        reader = csv.reader(f)
+        stor = csvio.Storage()
+        stor.load_csv(reader, titled=False)
+        tree = dtree.DecisionTree.build(stor.data)
+        print(tree.display())
+
+    input()
+
     with open('pre.csv') as f:
         reader = csv.reader(f)
         stor = csvio.Storage()

@@ -15,6 +15,17 @@ def majority(labels: np.ndarray):
     return np.argmax(np.bincount(labels))
 
 
+def information(labels: np.ndarray):
+    # assert there are more than one kind of features
+    num_samples = labels.shape[0]
+    bins = np.bincount(labels)
+    t = tuple(sorted(bins.tolist()))
+    bins = bins[bins != 0]
+    if t not in _information_table:
+        _information_table[t] = -np.sum(bins * np.log2(bins / num_samples)) / num_samples
+    return _information_table[t]
+
+
 def single_entropy(column: np.ndarray, labels: np.ndarray):
     union = np.stack([column, labels], axis=1)
     bins = np.bincount(column)
@@ -23,7 +34,8 @@ def single_entropy(column: np.ndarray, labels: np.ndarray):
     for (i, sep_num) in enumerate(bins):
         if sep_num != 0:
             sep_area = union[union[:, 0] == i]
-            entropy += sep_area.shape[0] * binary_information(sep_area[:, 1])
+            # entropy += sep_area.shape[0] * binary_information(sep_area[:, 1])
+            entropy += sep_area.shape[0] * information(sep_area[:, 1])
 
     entropy /= num_samples
     return entropy
@@ -78,26 +90,27 @@ class DecisionTreeLeafNode(DecisionTreeNode):
 class DecisionTree:
     def __init__(self, feature_num: int):
         self.feature_num = feature_num
-        self.used_features = np.zeros(feature_num, dtype=bool)
+        # self.used_features = np.zeros(feature_num, dtype=bool)
         self.root = None
 
-    def create_node(self, mtx: np.ndarray) -> DecisionTreeNode:
+    def create_node(self, mtx: np.ndarray, used_features: np.ndarray) -> DecisionTreeNode:
         datas = mtx[:, :-1]
         labels = mtx[:, -1]
+        used_features = used_features.copy()
         # all in one class
         if (labels == labels[0]).all():
             return DecisionTreeLeafNode(labels[0])
-        # no features left
-        if datas.shape[1] == 0:
+        # all used, no features left
+        if used_features.all():
             return DecisionTreeLeafNode(majority(labels))
 
-        feature_index = best_feature(datas, labels, self.used_features)
-        self.used_features[feature_index] = True
+        feature_index = best_feature(datas, labels, used_features)
+        used_features[feature_index] = True
         branch = DecisionTreeBranchNode(feature_index)
 
         values = set(datas[:, feature_index])
         for val in values:
-            branch.children[val] = self.create_node(mtx[mtx[:, feature_index] == val])
+            branch.children[val] = self.create_node(mtx[mtx[:, feature_index] == val], used_features)
         return branch
 
     def display(self):
@@ -106,35 +119,30 @@ class DecisionTree:
     @classmethod
     def build(cls, mtx: np.ndarray):
         tree = DecisionTree(mtx.shape[1] - 1)
-        tree.root = tree.create_node(mtx)
+        used_features = np.zeros(tree.feature_num, dtype=bool)
+        tree.root = tree.create_node(mtx, used_features)
         return tree
 
 
-def information(labels: np.ndarray):
-    # assert there are more than one kind of features
-    num_samples = labels.shape[0]
-    return sum([0 if sample == 0 else -sample * np.log2(sample / num_samples) for sample in np.bincount(labels)]) / num_samples
+# def _calc_binary_information(p: int, n: int):
+#     s = p + n
+#     return -(p * np.log2(p / s) + n * np.log2(n / s)) / s
+#
+#
+# def binary_information(labels: np.ndarray):
+#     # assume labels number in [0, 1, 2]
+#
+#     p, n = np.bincount(labels, minlength=2)
+#     p, n = max(p, n), min(p, n)
+#     if n == 0:
+#         return 0
+#     if (p, n) not in _information_table:
+#         _information_table[(p, n)] = _calc_binary_information(p, n)
+#     return _information_table[(p, n)]
 
 
-def _calc_binary_information(p: int, n: int):
-    s = p + n
-    return -(p * np.log2(p / s) + n * np.log2(n / s)) / s
-
-
-def binary_information(labels: np.ndarray):
-    # assume labels number in [0, 1, 2]
-
-    p, n = np.bincount(labels, minlength=2)
-    p, n = max(p, n), min(p, n)
-    if n == 0:
-        return 0
-    if (p, n) not in _information_table:
-        _information_table[(p, n)] = _calc_binary_information(p, n)
-    return _information_table[(p, n)]
-
-
-def gain(column: np.ndarray, labels: np.ndarray):
-    return binary_information(labels) - single_entropy(column, labels)
+# def gain(column: np.ndarray, labels: np.ndarray):
+#     return binary_information(labels) - single_entropy(column, labels)
 
 
 def create_dtree(mtx: np.ndarray, used_features: np.ndarray):

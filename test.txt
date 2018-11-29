@@ -1,7 +1,7 @@
 l30,high,no,fair,no
 l30,high,no,excellent,no
 b34,high,no,fair,yes
-g40,medium,no,fair,yes
+g40,medium,no,fair,unknown
 g40,low,yes,fair,yes
 g40,low,yes,excellent,no
 b34,low,yes,excellent,yes
