@@ -16,7 +16,24 @@ def looktest():
         stor = csvio.Storage()
         stor.load_csv(reader, titled=False)
         tree = dtree.DecisionTree.bfs_build(stor.data)
-        print(tree.display())
+        json.dump(tree.dict_tree(), open('testresult.json', 'w'), indent=2)
+
+        # print(tree.display())
+
+
+def lookloadtest():
+    with open('testresult.json', 'r') as f:
+        d = json.load(f)
+        tree = dtree.DecisionTree.build_from_dict(d)
+        print(json.dumps(tree.dict_tree(), indent=2))
+
+
+def lookloadpre():
+    with open('preresult.json', 'r') as f:
+        d = json.load(f)
+        tree = dtree.DecisionTree.build_from_dict(d)
+        json.dump(tree.dict_tree(), open('prereresult.json', 'w'), indent=2)
+
 
 
 def lookpre():
@@ -25,8 +42,9 @@ def lookpre():
         stor = csvio.Storage()
         stor.load_csv(reader, titled=True)
         tree = dtree.DecisionTree.bfs_build(stor.data)
-        print(tree.display(), file=open('origin_preresult.txt', 'w'))
+        # print(tree.display(), file=open('origin_preresult.txt', 'w'))
 
+        json.dump(tree.dict_tree(), open('preresult.json', 'w'), indent=2)
 
 def lookdata():
     with open('pre.csv') as f:
@@ -52,4 +70,4 @@ def lookdata():
 
 if __name__ == '__main__':
     # sys.setrecursionlimit(1500)
-    lookpre()
+    lookloadpre()
