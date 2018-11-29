@@ -132,6 +132,7 @@ def icd9(val: str):
     except ValueError:
         return 'Other'
 
+
 def preprocessing(filename):
     datas = []
     titles = []
@@ -175,8 +176,8 @@ def preprocessing(filename):
                 elif i in [18]:
                     p.append(icd9(val))
 
-                elif i in [49]:
-                    p.append('<30' if val == '<30' else '>30')
+                # elif i in [49]:
+                #     p.append('<30' if val == '<30' else '>30')
 
                 else:
                     p.append(val)

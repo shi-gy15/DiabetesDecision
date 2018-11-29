@@ -1,5 +1,6 @@
 import csvio
 import numpy as np
+import queue
 
 _information_table = {
 
@@ -15,10 +16,9 @@ def majority(labels: np.ndarray):
     return np.argmax(np.bincount(labels))
 
 
-def information(labels: np.ndarray):
+def information(bins: np.ndarray):
     # assert there are more than one kind of features
-    num_samples = labels.shape[0]
-    bins = np.bincount(labels)
+    num_samples = np.sum(bins)
     t = tuple(sorted(bins.tolist()))
     bins = bins[bins != 0]
     if t not in _information_table:
@@ -35,37 +35,46 @@ def single_entropy(column: np.ndarray, labels: np.ndarray):
         if sep_num != 0:
             sep_area = union[union[:, 0] == i]
             # entropy += sep_area.shape[0] * binary_information(sep_area[:, 1])
-            entropy += sep_area.shape[0] * information(sep_area[:, 1])
+            entropy += sep_area.shape[0] * information(np.bincount(sep_area[:, 1]))
 
     entropy /= num_samples
     return entropy
 
 
+def max_entropy(num: int, classes: int):
+    cnt = num // classes
+    bins = np.full((classes, ), cnt)
+    bins[:num - cnt * classes] += 1
+    return information(bins)
+
+
 def best_feature(datas: np.ndarray, labels: np.ndarray, used_features: np.ndarray):
     # gain = I(p, n) - E
     # so choose the minimum new E
-    min_entropy = 1
-    current_best = 0
+    min_entropy = 2
+    current_bests = set()
     for i in range(datas.shape[1]):
         if not used_features[i]:
             temp_entropy = single_entropy(datas[:, i], labels)
             if temp_entropy < min_entropy:
                 min_entropy = temp_entropy
-                current_best = i
-    return current_best
+                current_bests = {i}
+            elif temp_entropy == min_entropy:
+                current_bests.add(i)
+    return current_bests
 
 
 class DecisionTreeNode:
-    def __init__(self):
-        pass
+    def __init__(self, depth: int):
+        self.depth = depth
 
     def display(self, indent=0):
         pass
 
 
 class DecisionTreeBranchNode(DecisionTreeNode):
-    def __init__(self, feature_index: int):
-        super(DecisionTreeBranchNode, self).__init__()
+    def __init__(self, feature_index: int, depth: int):
+        super(DecisionTreeBranchNode, self).__init__(depth)
         self.children = {}
         self.feature_index = feature_index
         self.tag = None
@@ -79,8 +88,8 @@ class DecisionTreeBranchNode(DecisionTreeNode):
 
 
 class DecisionTreeLeafNode(DecisionTreeNode):
-    def __init__(self, label: int):
-        super(DecisionTreeLeafNode, self).__init__()
+    def __init__(self, label: int, depth: int):
+        super(DecisionTreeLeafNode, self).__init__(depth)
         self.label = label
 
     def display(self, indent=0):
@@ -92,6 +101,8 @@ class DecisionTree:
         self.feature_num = feature_num
         # self.used_features = np.zeros(feature_num, dtype=bool)
         self.root = None
+        self.nodeq = queue.Queue()
+
 
     def create_node(self, mtx: np.ndarray, used_features: np.ndarray) -> DecisionTreeNode:
         datas = mtx[:, :-1]
@@ -114,7 +125,7 @@ class DecisionTree:
         return branch
 
     def display(self):
-        print(self.root.display())
+        return(self.root.display())
 
     @classmethod
     def build(cls, mtx: np.ndarray):
@@ -122,6 +133,51 @@ class DecisionTree:
         used_features = np.zeros(tree.feature_num, dtype=bool)
         tree.root = tree.create_node(mtx, used_features)
         return tree
+
+    @classmethod
+    def bfs_build(cls, mtx: np.ndarray):
+        tree = DecisionTree(mtx.shape[1] - 1)
+        used_features = np.zeros(tree.feature_num, dtype=bool)
+        tree.nodeq.put((mtx, used_features, None, None), block=False)
+
+        cur_depth = 0
+
+        while not tree.nodeq.empty():
+            param = tree.nodeq.get(block=False)
+            if param[2] is not None and param[2].depth > cur_depth:
+                cur_depth = param[2].depth
+                print('into layer %d' % cur_depth)
+            tree.bfs_create(*param)
+
+        return tree
+
+    def bfs_create(self, mtx: np.ndarray, used_features: np.ndarray, parent: DecisionTreeBranchNode, parent_val: int):
+        datas = mtx[:, :-1]
+        labels = mtx[:, -1]
+
+        depth = 0 if parent is None else parent.depth + 1
+
+        # all in one class
+        if (labels == labels[0]).all():
+            node = DecisionTreeLeafNode(labels[0], depth)
+        # all used, no features left
+        elif used_features.all():
+            node = DecisionTreeLeafNode(majority(labels), depth)
+        else:
+            # branch
+            bests = best_feature(datas, labels, used_features)
+            feature_index = min(bests)
+            used_features[list(bests)] = True
+            node = DecisionTreeBranchNode(feature_index, depth)
+
+            values = set(datas[:, feature_index])
+            for val in values:
+                self.nodeq.put((mtx[mtx[:, feature_index] == val], used_features.copy(), node, val), block=False)
+
+        if parent is None:
+            self.root = node
+        else:
+            parent.children[parent_val] = node
 
 
 # def _calc_binary_information(p: int, n: int):
