@@ -1,6 +1,7 @@
-import csvio
 import numpy as np
 import queue
+import models
+import json
 
 _information_table = {
 
@@ -71,10 +72,11 @@ class DecisionTreeNode:
 
 
 class DecisionTreeBranchNode(DecisionTreeNode):
-    def __init__(self, feature_index: int, depth: int):
+    def __init__(self, feature_index: int, depth: int, default_label):
         super(DecisionTreeBranchNode, self).__init__(depth)
         self.children = {}
         self.feature_index = feature_index
+        self.default_label = default_label
         self.tag = None
 
     def display(self, indent=0):
@@ -82,11 +84,13 @@ class DecisionTreeBranchNode(DecisionTreeNode):
         description = '[feature %d]\n' % self.feature_index
         for index, child in self.children.items():
             description += '%s%d: %s' % (space, index, child.display(indent=indent + 3))
+        description += '%sdefault: %d' % (space, self.default_label)
         return description
 
     def dict_node(self):
         d = {
-            'f': str(self.feature_index)
+            'f': str(self.feature_index),
+            'd': str(self.default_label)
         }
         for v, node in self.children.items():
             d[str(v)] = node.dict_node()
@@ -105,32 +109,11 @@ class DecisionTreeLeafNode(DecisionTreeNode):
         return str(self.label)
 
 
-class DecisionTree:
-    def __init__(self, feature_num: int):
-        self.feature_num = feature_num
+class DecisionTree(models.ClassificationModel):
+    def __init__(self, feature_num: int, debug: bool = False):
+        super(DecisionTree, self).__init__(feature_num, debug)
         self.root = None
         self.nodeq = queue.Queue()
-
-    def dfs_create_node(self, mtx: np.ndarray, used_features: np.ndarray, depth: int) -> DecisionTreeNode:
-        datas = mtx[:, :-1]
-        labels = mtx[:, -1]
-        used_features = used_features.copy()
-        # all in one class
-        if (labels == labels[0]).all():
-            return DecisionTreeLeafNode(labels[0], depth)
-        # all used, no features left
-        if used_features.all():
-            return DecisionTreeLeafNode(majority(labels), depth)
-
-        bests = best_feature(datas, labels, used_features)
-        feature_index = min(bests)
-        used_features[list(bests)] = True
-        branch = DecisionTreeBranchNode(feature_index, depth)
-
-        values = set(datas[:, feature_index])
-        for val in values:
-            branch.children[val] = self.dfs_create_node(mtx[mtx[:, feature_index] == val], used_features, depth + 1)
-        return branch
 
     def display(self):
         return self.root.display() if self.root is not None else ''
@@ -138,9 +121,12 @@ class DecisionTree:
     def dict_tree(self):
         return self.root.dict_node() if self.root is not None else {}
 
+    def to_json(self, indent=2):
+        return json.dumps(self.dict_tree(), ensure_ascii=False, indent=indent)
+
     @classmethod
-    def build_from_dict(cls, d: dict):
-        tree = DecisionTree(0)
+    def build_from_dict(cls, d: dict, debug: bool = False):
+        tree = DecisionTree(0, debug)
         tree.nodeq.put((d, None, None), block=False)
         while not tree.nodeq.empty():
             param = tree.nodeq.get(block=False)
@@ -153,10 +139,12 @@ class DecisionTree:
             node = DecisionTreeLeafNode(np.uint8(d), depth)
         else:
             feature_index = np.uint8(d['f'])
+            default_label = np.uint8(d['d'])
             if feature_index + 1 > self.feature_num:
                 self.feature_num = feature_index + 1
-            node = DecisionTreeBranchNode(feature_index, depth)
+            node = DecisionTreeBranchNode(feature_index, depth, default_label)
             del(d['f'])
+            del(d['d'])
             for k, subd in d.items():
                 self.nodeq.put((subd, node, np.uint8(k)))
         if parent is None:
@@ -165,23 +153,21 @@ class DecisionTree:
             parent.children[parent_val] = node
 
     @classmethod
-    def dfs_build(cls, mtx: np.ndarray):
-        tree = DecisionTree(mtx.shape[1] - 1)
-        used_features = np.zeros(tree.feature_num, dtype=bool)
-        tree.root = tree.dfs_create_node(mtx, used_features, 0)
-        return tree
-
-    @classmethod
-    def bfs_build(cls, mtx: np.ndarray):
-        tree = DecisionTree(mtx.shape[1] - 1)
+    def build(cls, mtx: np.ndarray, debug: bool = False):
+        tree = DecisionTree(mtx.shape[1] - 1, debug)
         used_features = np.zeros(tree.feature_num, dtype=bool)
         tree.nodeq.put((mtx, used_features, None, None), block=False)
+        cur_layer = 0
         while not tree.nodeq.empty():
             param = tree.nodeq.get(block=False)
-            tree.bfs_create_node(*param)
+            if debug:
+                if param[2] is not None and param[2].depth > cur_layer:
+                    cur_layer = param[2].depth
+                    print('layer %d' % cur_layer)
+            tree.create_node(*param)
         return tree
 
-    def bfs_create_node(self, mtx: np.ndarray, used_features: np.ndarray, parent: DecisionTreeBranchNode, parent_val: int):
+    def create_node(self, mtx: np.ndarray, used_features: np.ndarray, parent: DecisionTreeBranchNode, parent_val: int):
         datas = mtx[:, :-1]
         labels = mtx[:, -1]
 
@@ -198,7 +184,8 @@ class DecisionTree:
             bests = best_feature(datas, labels, used_features)
             feature_index = min(bests)
             used_features[list(bests)] = True
-            node = DecisionTreeBranchNode(feature_index, depth)
+            default_label = np.argmax(np.bincount(labels))
+            node = DecisionTreeBranchNode(feature_index, depth, default_label)
 
             values = set(datas[:, feature_index])
             for val in values:
@@ -208,3 +195,49 @@ class DecisionTree:
             self.root = node
         else:
             parent.children[parent_val] = node
+
+    def classify(self, data: np.ndarray):
+        node = self.root
+        while type(node) == DecisionTreeBranchNode:
+            feature = data[node.feature_index]
+            if self.debug:
+                print('choose feature %d, data is %d' % (node.feature_index, feature))
+            if feature in node.children:
+                node = node.children[feature]
+            else:
+                if self.debug:
+                    print('no matching, choose most common: %d' % node.default_label)
+                return node.default_label
+
+        if self.debug:
+            print('label %d' % node.label)
+        return node.label
+
+# deprecated method: dfs
+#     def dfs_create_node(self, mtx: np.ndarray, used_features: np.ndarray, depth: int) -> DecisionTreeNode:
+#         datas = mtx[:, :-1]
+#         labels = mtx[:, -1]
+#         used_features = used_features.copy()
+#         # all in one class
+#         if (labels == labels[0]).all():
+#             return DecisionTreeLeafNode(labels[0], depth)
+#         # all used, no features left
+#         if used_features.all():
+#             return DecisionTreeLeafNode(majority(labels), depth)
+#
+#         bests = best_feature(datas, labels, used_features)
+#         feature_index = min(bests)
+#         used_features[list(bests)] = True
+#         branch = DecisionTreeBranchNode(feature_index, depth)
+#
+#         values = set(datas[:, feature_index])
+#         for val in values:
+#             branch.children[val] = self.dfs_create_node(mtx[mtx[:, feature_index] == val], used_features, depth + 1)
+#         return branch
+#
+# @classmethod
+#     def dfs_build(cls, mtx: np.ndarray):
+#         tree = DecisionTree(mtx.shape[1] - 1)
+#         used_features = np.zeros(tree.feature_num, dtype=bool)
+#         tree.root = tree.dfs_create_node(mtx, used_features, 0)
+#         return tree
