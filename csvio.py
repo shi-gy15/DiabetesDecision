@@ -65,7 +65,7 @@ class Storage:
         self.titles = None
         self.column_num = None
         self.row_num = None
-        self.data = []
+        self.mtx = []
 
     def lookup(self, i: int, val):
         if val not in self.mappings[i]:
@@ -73,34 +73,44 @@ class Storage:
             self.last_index[i] += 1
         return self.mappings[i][val]
 
-    def load_csv(self, csvreader, titled=True):
-        if titled:
-            self.titles = next(csvreader)
+    def load_csv(self, filename: str, titled=True):
+        with open(filename, 'r') as f:
+            csvreader = csv.reader(f)
+            if titled:
+                self.titles = next(csvreader)
 
-        for line in csvreader:
-            if self.column_num is None:
-                self.column_num = len(line)
-                self.mappings = [{} for j in range(self.column_num)]
-                self.last_index = [0] * self.column_num
+            for line in csvreader:
+                if self.column_num is None:
+                    self.column_num = len(line)
+                    self.mappings = [{} for j in range(self.column_num)]
+                    self.last_index = [0] * self.column_num
 
-            p = []
-            for i, val in enumerate(line):
-                # lookup
-                if val not in self.mappings[i]:
-                    self.mappings[i][val] = self.last_index[i]
-                    self.last_index[i] += 1
-                p.append(self.mappings[i][val])
+                p = []
+                for i, val in enumerate(line):
+                    # lookup
+                    if val not in self.mappings[i]:
+                        self.mappings[i][val] = self.last_index[i]
+                        self.last_index[i] += 1
+                    p.append(self.mappings[i][val])
 
-            self.data.append(p)
+                self.mtx.append(p)
 
-        self.data = np.asarray(self.data, dtype=np.uint8)
-        self.row_num = self.data.shape[0]
+            self.mtx = np.asarray(self.mtx, dtype=np.uint8)
+            self.row_num = self.mtx.shape[0]
 
     def re_mapping(self, index: int, mapping: dict):
         new_mapping = {}
         for mapped_index, val in self.mappings[index].items():
             new_mapping[mapping[mapped_index] if mapped_index in mapping else mapped_index] = val
         self.mappings[index] = new_mapping
+
+    def give(self, ratio: float):
+        if not 0 < ratio < 1:
+            raise ValueError('Train/Test ratio falls in [0, 1]')
+
+        num_train = int(self.row_num * ratio)
+        np.random.shuffle(self.mtx)
+        return self.mtx[:num_train, :], self.mtx[num_train, :]
 
 
 def icd9(val: str):

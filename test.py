@@ -4,11 +4,90 @@ import csvio
 import csv
 import json
 import naive_bayesian
+import support_vector_machine
+import k_nearest_neighbors
 import sys
+
+x = np.asarray([0, 1, 4, 1,
+                        1, 1, 0, 0,
+                        1, 1, 0, 0, 0,
+                        0, 0, 3, 4,
+                        0, 0, 0, 0,
+                        0, 0, 0, 0,
+                        1, 0, 0, 0,
+                        0, 0, 0, 0,
+                        0, 2, 0, 0,
+                        0, 0, 0, 1,
+                        1], dtype=np.uint8)
+
+x2 = np.asarray([0, 0, 0, 0])
 
 
 def dopre():
     csvio.preprocessing('diabetic_data.csv')
+
+
+def train_models(train_set: np.ndarray, debug: bool):
+    numerical_indexes = [2, 6, 9, 10, 11, 12, 13, 14, 16]
+
+    model_instances = {
+        'knn_10': k_nearest_neighbors.KNN.build(train_set, numerical_indexes=numerical_indexes, k=10, debug=debug),
+        'knn_20': k_nearest_neighbors.KNN.build(train_set, numerical_indexes=numerical_indexes, k=20, debug=debug),
+        'knn_40': k_nearest_neighbors.KNN.build(train_set, numerical_indexes=numerical_indexes, k=40, debug=debug),
+        'd_tree': decision_tree.DecisionTree.build(train_set, debug=debug),
+        'bayes': naive_bayesian.NaiveBayesianNetwork.build(train_set, debug=debug),
+        'svm_linear': support_vector_machine.SVM.build(train_set, kernel='linear', sigma=1.0, degree=1, debug=debug),
+        # 'svm_poly': support_vector_machine.SVM.build(train_set, kernel='poly', sigma=1.0, degree=2, debug=debug)
+    }
+
+    return model_instances
+
+
+def mainproc(debug):
+    stor = csvio.Storage()
+    stor.load_csv('pre.csv', titled=True)
+
+    # test
+    test_round = 5
+    train_result = None
+    test_result = None
+
+    for i in range(test_round):
+        print('Round [%d]' % i)
+        train_set, test_set = stor.give(0.75)
+        instances = train_models(train_set, debug)
+        # init
+        if train_result is None:
+            train_result = {k: np.zeros((test_round, 4), dtype=np.double) for k in instances.keys()}
+        if test_result is None:
+            test_result = {k: np.zeros((test_round, 4), dtype=np.double) for k in instances.keys()}
+
+        for model_name, model_instance in instances.items():
+            train_result[model_name][test_round, :] = model_instance.test(train_set)
+            test_result[model_name][test_round, :] = model_instance.test(test_set)
+            del model_instance
+
+        del instances
+
+    train_mean = {name: np.mean(perf, axis=0) for name, perf in train_result.items()}
+    test_mean = {name: np.mean(perf, axis=0) for name, perf in test_result.items()}
+    with open('mainproc_result.txt', 'w') as f:
+        f.write('------------------------------ performance on train set ------------------------------\n')
+        for model_name, result in train_result.items():
+            f.write('Model: [%s]\n' % model_name)
+            for i in range(test_round):
+                f.write('[%d]. Accuracy: [%f], Precision: [%f], Recall: [%f], F1-score: [%f]\n' % (i, *(tuple(result[i, :]))))
+            f.write('Mean Accuracy: [%f], Precision: [%f], Recall: [%f], F1-score: [%f]\n' % tuple(train_mean[model_name]))
+
+        f.write('------------------------------ performance on test set ------------------------------\n')
+        for model_name, result in test_result.items():
+            f.write('Model: [%s]\n' % model_name)
+            for i in range(test_round):
+                f.write('[%d]. Accuracy: [%f], Precision: [%f], Recall: [%f], F1-score: [%f]\n' % (i, *(tuple(result[i, :]))))
+            f.write(
+                'Mean Accuracy: [%f], Precision: [%f], Recall: [%f], F1-score: [%f]\n' % tuple(test_mean[model_name]))
+
+
 
 
 def looktest():
@@ -81,17 +160,7 @@ def lookloadbayes():
         d = json.load(f)
         bayes = naive_bayesian.NaiveBayesianNetwork.build_from_dict(d, debug=True)
         # x = np.asarray([1,1,1,1], dtype=np.uint8)
-        x = np.asarray([0, 1, 4, 1,
-                        1, 1, 0, 0,
-                        1, 1, 0, 0, 0,
-                        0, 0, 3, 4,
-                        0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        1, 0, 0, 0,
-                        0, 0, 0, 0,
-                        0, 2, 0, 0,
-                        0, 0, 0, 1,
-                        1], dtype=np.uint8)
+
         print(bayes.classify(x))
 
 def lookdata():
@@ -112,10 +181,26 @@ def lookdata():
             # print(i, stor.titles[i], dtree.single_entropy(datas[:, i], labels))
 
         es = sorted(es, key=lambda x: x[2])
-        with open('entro.txt', 'w') as fo:
-            [print(ei, file=fo) for ei in es]
+        # with open('entro.txt', 'w') as fo:
+        #     [print(ei, file=fo) for ei in es]
 
+
+def looksvm():
+    with open('pre.csv', 'r') as f:
+        reader = csv.reader(f)
+        stor = csvio.Storage()
+        stor.load_csv(reader, titled=True)
+        svm = support_vector_machine.SVM.build(stor.data)
+        print('answer is: [%d]' % svm.classify(x))
+
+def lookknn():
+    with open('pre.csv', 'r') as f:
+        reader = csv.reader(f)
+        stor = csvio.Storage()
+        stor.load_csv(reader, titled=True)
+        knn = k_nearest_neighbors.KNN.build(stor.data)
+        print('answer is: [%d]' % knn.classify(x))
 
 if __name__ == '__main__':
     # sys.setrecursionlimit(1500)
-    lookloadbayes()
+    mainproc(debug=False)

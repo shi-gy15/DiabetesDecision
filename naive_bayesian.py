@@ -4,15 +4,15 @@ import json
 
 
 class NaiveBayesianNetwork(models.ClassificationModel):
-    def __init__(self, feature_num: int, debug: bool = False):
-        super(NaiveBayesianNetwork, self).__init__(feature_num, debug)
+    def __init__(self, feature_num: int, **kwargs):
+        super(NaiveBayesianNetwork, self).__init__(feature_num, **kwargs)
         self.p_class = None
         self.p_attrs = None
         self.class_num = None
 
     @classmethod
-    def build(cls, mtx: np.ndarray, debug: bool = False):
-        bayes = NaiveBayesianNetwork(mtx.shape[1] - 1, debug)
+    def build(cls, mtx: np.ndarray, **kwargs):
+        bayes = NaiveBayesianNetwork(mtx.shape[1] - 1, **models.filter_args(kwargs, ['debug']))
         row_num = mtx.shape[0]
         labels = mtx[:, -1]
         # class probability
@@ -23,23 +23,14 @@ class NaiveBayesianNetwork(models.ClassificationModel):
         for c in range(bayes.class_num):
             sub_area = mtx[mtx[:, -1] == c]
             sub_row_num = sub_area.shape[0]
-            p_attr = []
-            for j in range(bayes.feature_num):
-                p_attr.append(np.bincount(sub_area[:, j]) / sub_row_num)
-
-            bayes.p_attrs.append(p_attr)
+            bayes.p_attrs.append([np.bincount(sub_area[:, j]) / sub_row_num for j in range(bayes.feature_num)])
         return bayes
 
     @classmethod
-    def build_from_dict(cls, d: dict, debug: bool = False):
+    def build_from_dict(cls, d: dict, **kwargs):
         p_class = np.asarray(d['c'])
-        p_attrs = []
-        for p_c in d['a']:
-            attrs = []
-            for attr in p_c:
-                attrs.append(np.asarray(attr))
-            p_attrs.append(attrs)
-        bayes = NaiveBayesianNetwork(len(p_attrs[0]), debug)
+        p_attrs = [[np.asarray(attr) for attr in p_c] for p_c in d['a']]
+        bayes = NaiveBayesianNetwork(len(p_attrs[0]), **models.filter_args(kwargs, ['debug']))
         bayes.p_class = p_class
         bayes.p_attrs = p_attrs
         bayes.class_num = p_class.shape[0]
@@ -68,12 +59,7 @@ class NaiveBayesianNetwork(models.ClassificationModel):
 
     def to_json(self, indent=2):
         listp_class = self.p_class.tolist()
-        listp = []
-        for p_c in self.p_attrs:
-            p_attr = []
-            for attr in p_c:
-                p_attr.append(attr.tolist())
-            listp.append(p_attr)
+        listp = [[attr.tolist() for attr in p_c] for p_c in self.p_attrs]
         d = {
             'c': listp_class,
             'a': listp

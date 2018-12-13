@@ -13,3 +13,28 @@
 **Procedure 2**
 
 - 列 24-46 是 23 个用药情况, 按照降序, 列 39, 40, 46, 34, 39, 43, 44, 31, 45, 28, 40, 29
+
+### 分类算法
+
+**K近邻 (K-nearest Neighbors)**
+
+
+
+**决策树 (Decision Tree)**
+
+**朴素贝叶斯 (Naive Bayesian)**
+
+**支持向量机 (Support Vector Machine)**
+
+
+### 运行环境
+
+运行环境为 `python3.6` , 需安装依赖如下：
+
+```
+numpy==1.15.4
+cvxopt==1.2.0
+scipy==1.1.0
+scikit-learn==0.20.1
+```
+
