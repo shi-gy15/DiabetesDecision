@@ -2,14 +2,11 @@ import numpy as np
 import queue
 import models
 import json
+import util
 
 _information_table = {
 
 }
-
-
-def majority(labels: np.ndarray):
-    return np.argmax(np.bincount(labels))
 
 
 def information(bins: np.ndarray):
@@ -181,7 +178,7 @@ class DecisionTree(models.ClassificationModel):
             node = DecisionTreeLeafNode(labels[0], depth)
         # all used, no features left
         elif used_features.all():
-            node = DecisionTreeLeafNode(majority(labels), depth)
+            node = DecisionTreeLeafNode(util.majority(labels), depth)
         else:
             # branch
             bests = best_feature(data, labels, used_features)

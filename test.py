@@ -6,9 +6,13 @@ import json
 import naive_bayesian
 import support_vector_machine
 import k_nearest_neighbors
+import ball_tree
 import sys
 
-x = np.asarray([0, 1, 4, 1,
+dias = csvio.Storage()
+tests = csvio.Storage()
+
+x1 = np.asarray([0, 1, 4, 1,
                         1, 1, 0, 0,
                         1, 1, 0, 0, 0,
                         0, 0, 3, 4,
@@ -21,6 +25,7 @@ x = np.asarray([0, 1, 4, 1,
                         1], dtype=np.uint8)
 
 x2 = np.asarray([0, 0, 0, 0])
+x3 = np.asarray([1, 2, 1, 1])
 
 
 def dopre():
@@ -63,6 +68,7 @@ def mainproc(debug):
             test_result = {k: np.zeros((test_round, 4), dtype=np.double) for k in instances.keys()}
 
         for model_name, model_instance in instances.items():
+
             train_result[model_name][test_round, :] = model_instance.test(train_set)
             test_result[model_name][test_round, :] = model_instance.test(test_set)
             del model_instance
@@ -194,13 +200,23 @@ def looksvm():
         print('answer is: [%d]' % svm.classify(x))
 
 def lookknn():
-    with open('pre.csv', 'r') as f:
-        reader = csv.reader(f)
-        stor = csvio.Storage()
-        stor.load_csv(reader, titled=True)
-        knn = k_nearest_neighbors.KNN.build(stor.data)
-        print('answer is: [%d]' % knn.classify(x))
+    knn = k_nearest_neighbors.KNN.build(dias.mtx, k=4, debug=True)
+    print('answer is: [%d]' % knn.classify(x1))
+    # print('answer is: [%d]' % knn.classify(x3))
+
+def lookball():
+    btree = ball_tree.BallTree.build(dias.mtx, leaf_size=64, k=10, numerical_indices=[2, 6, 9, 10, 11, 12, 13, 14, 16], debug=True)
+    # btree = ball_tree.BallTree.build(tests.mtx, leaf_size=2, numerical_indices=[], k=4, debug=True)
+    # print(btree.num_nodes)
+    # print(btree.idx_array)
+    print(btree.query(x1))
+    # print(btree.query(x3))
+    pass
 
 if __name__ == '__main__':
+    dias.load_csv('pre.csv', titled=True)
+    tests.load_csv('test.txt', titled=False)
     # sys.setrecursionlimit(1500)
-    mainproc(debug=False)
+    # mainproc(debug=False)
+    # lookball()
+    lookknn()
