@@ -110,7 +110,7 @@ class Storage:
 
         num_train = int(self.row_num * ratio)
         np.random.shuffle(self.mtx)
-        return self.mtx[:num_train, :], self.mtx[num_train, :]
+        return self.mtx[:num_train, :], self.mtx[num_train:, :]
 
 
 def icd9(val: str):
@@ -170,16 +170,22 @@ def preprocessing(filename):
 
                     continue
 
+                # 4       age: [10-20) -> 1
+                elif i in [4]:
+                    p.append(val.split('-')[0][1:])
+
                 # numeric field to interval
                 # 12, 14  number of lab procedures/medications
                 elif i in [12, 14]:
                     seg = int(val) // 10
-                    p.append('[%d-%d)' % (seg * 10, (seg + 1) * 10))
+                    # p.append('[%d-%d)' % (seg * 10, (seg + 1) * 10))
+                    p.append(seg)
 
                 # numeric but not fair
                 # 15, 16  number of procedure and inpatient
                 elif i in [15, 16, 17]:
-                    p.append(val if int(val) <= 3 else '>3')
+                    # p.append(val if int(val) <= 3 else '>3')
+                    p.append(val if int(val) <= 3 else '4')
 
                 # diagnosis 1
                 # 18      diagnosis 1
@@ -195,7 +201,7 @@ def preprocessing(filename):
 
         # datas = np.asarray(datas)
 
-    with open('pre.csv', 'w', newline='') as f:
+    with open('pre_num.csv', 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(titles)
         for row in datas:

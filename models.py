@@ -36,13 +36,27 @@ class ClassificationModel:
         raise NotImplementedError
 
     def classify_all(self, data: np.ndarray):
-        return np.asarray([self.classify(row) for row in data], dtype=np.uint8)
+        r = np.empty((data.shape[0], ), dtype=np.uint8)
+        i = 0
+        for row in data:
+            r[i] = self.classify(row)
+            i += 1
+            if i % 1000 == 0:
+                print(i)
+        # return np.asarray([self.classify(row) for row in data], dtype=np.uint8)
+        return r
 
     def test(self, mtx: np.ndarray):
         num_samples = mtx.shape[0]
         data = mtx[:, :-1]
         truth = mtx[:, -1]
         result = self.classify_all(data)
+
+        # print(result is None)
+        #
+        # print(truth.shape, result.shape)
+        # print(truth[:20])
+        # print(result[:20])
         class_bin = set(truth) | set(result)
 
         accuracy = metrics.accuracy_score(truth, result)

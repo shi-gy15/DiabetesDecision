@@ -82,10 +82,8 @@ class BallTree(models.ClassificationModel):
 
         if 2 * i_node + 1 >= self.num_nodes:
             self.node_is_leaf[i_node] = True
-
         elif index_end - index_start < 2:
             self.node_is_leaf[i_node] = True
-
         else:
             self.node_is_leaf[i_node] = False
             n_mid = int((index_end + index_start) // 2)
@@ -168,10 +166,10 @@ class BallTree(models.ClassificationModel):
 
                 if rdist_left <= rdist_right:
                     self.dfs_query(i1, X, rdist_left)
-                    self.dfs_query(i2, X, rdist_right)
+                    # self.dfs_query(i2, X, rdist_right)
                 else:
                     self.dfs_query(i2, X, rdist_right)
-                    self.dfs_query(i1, X, rdist_left)
+                    # self.dfs_query(i1, X, rdist_left)
 
     @staticmethod
     def nominal_square_distance(a: np.ndarray, b: np.ndarray):
